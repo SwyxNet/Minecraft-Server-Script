@@ -3,7 +3,7 @@ EZ minecraft server script
 
 Simply download the .sh
 Put it in a folder
-chmod u+x to make it executable and then lauch it. 
+chmod u+x to make it executable and then launch it. 
 
 Let it guide you through the setup. You'll have a working server in minutes without knowing any bits of code.
 
