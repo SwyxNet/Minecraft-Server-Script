@@ -1,30 +1,5 @@
 # Script Version
-scriptVersion='2.1.0 b8'
-
-if [ ! -e config.yml ]
-then
-	echo "#Configuration
-# Minecraft Spigot Used version
-buildVersion=latest
-# Dedicated Memory for the server
-dedicatedRam='2G'
-# Source of the Build Tools Build.
-spigotSource='https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar'
-# sftp user
-sftpUser='default'
-# sftp password
-sftpPassword='default'
-# sftp server
-sftpServer='default'
-# Autoclean Function
-autoclean=0
-# VAR INIT
-autonomous=0
-#End of configuration
-" > config.yml
-fi
-
-source config.yml
+scriptVersion='2.1.0 b9'
 
 # End of Init
 
@@ -83,7 +58,7 @@ mainMenu()
 	"
 	
 	PS3='>: '
-    options=("Start Server" "Start Server in continuous mode" "Update Server to $buildVersion" "Install Middlewares" "Backup Serveur" "Purge Backups" "Delete Server" "Quit")
+    options=("Start Server" "Start Server in continuous mode" "Update Server to $buildVersion" "Backup Serveur" "Purge Backups" "Delete Server" "Quit")
     select opt in "${options[@]}"
     do
         case $opt in
@@ -106,12 +81,6 @@ mainMenu()
 					cleanServer
 				fi
                 mainMenu
-		break
-                ;;
-            "Install Middlewares")
-                installServer
-				exit 0
-                
 		break
 				;;
             "Backup Serveur")
@@ -346,6 +315,36 @@ runServ()
         backupWorld
     fi
 }
+
+# Init detection
+
+if [ ! -e config.yml ]
+then
+	echo "#Configuration
+# Minecraft Spigot Used version
+buildVersion=latest
+# Dedicated Memory for the server
+dedicatedRam='2G'
+# Source of the Build Tools Build.
+spigotSource='https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar'
+# sftp user
+sftpUser='default'
+# sftp password
+sftpPassword='default'
+# sftp server
+sftpServer='default'
+# Autoclean Function
+autoclean=0
+# VAR INIT
+autonomous=0
+#End of configuration
+" > config.yml
+
+installServer
+
+fi
+
+source config.yml
 
 # Testing if first arg is NULL
 if [ -z "$1" ]
