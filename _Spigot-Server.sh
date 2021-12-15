@@ -349,7 +349,7 @@ source config.yml
 # Testing if first arg is NULL
 if [ -z "$1" ]
 then
-    echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mNo parameter specified.\e[39m"
+    echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mStarting UI\e[39m"
 else
 	if [ $1 == "-u" -o $1 == "--update" ]
 	then
