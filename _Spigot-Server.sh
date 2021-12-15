@@ -1,5 +1,5 @@
 # Script Version
-scriptVersion='2.1.0 b7'
+scriptVersion='2.1.0 b8'
 
 if [ ! -e config.yml ]
 then
@@ -300,15 +300,11 @@ getUpdate()
 {
 	echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mCreating Update script\e[39m"
 	echo "echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mCloning repository\e[39m\"
-	sleep 2
 	git clone https://github.com/SwyxNet/Minecraft-Server-Script
-	sleep 2
 	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mRemoving old version\e[39m\"
 	rm _Spigot-Server.sh
-	sleep 2
 	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mCopying new version\e[39m\"
 	mv Minecraft-Server-Script/_Spigot-Server.sh _Spigot-Server.sh
-	sleep 2
 	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mMaking the script executable\e[39m\"
 	chmod u+x _Spigot-Server.sh
 	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mUpdate Complete\e[39m\"
@@ -317,7 +313,6 @@ getUpdate()
 	rm updater.sh
 	exit 0
 " > updater.sh
-	sleep 2
 	chmod u+x updater.sh
 	./updater.sh
 }
