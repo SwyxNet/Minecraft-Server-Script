@@ -1,5 +1,5 @@
-# Verison du script
-scriptVersion='2.0.0'
+# Script Version
+scriptVersion='2.1.0 b7'
 
 if [ ! -e config.yml ]
 then
@@ -16,15 +16,18 @@ sftpUser='default'
 sftpPassword='default'
 # sftp server
 sftpServer='default'
-# Initialisation des variables
+# Autoclean Function
+autoclean=0
+# VAR INIT
 autonomous=0
 #End of configuration
 " > config.yml
 fi
 
-
-
 source config.yml
+
+# End of Init
+
 showHelp()
 {
 	echo ""
@@ -51,6 +54,7 @@ showHelp()
 	-i or --install // Installs the servers pre requisits (start once)
 	-a or --full-backup // Saves th full server in /home/pi/Minecraft/Backup folder
 	-r or --runautonomous // Runs the server in perpetual mode
+	-g or --getUpdate // Update this script
 	-h or --help // Shows basic Help
 	\e[39m"
 	echo ""
@@ -66,68 +70,7 @@ showHelp()
 	echo ""
 }
 
-maintenance()
-{
-	echo "
-	_
-	__
-	___ Maintenance menu
-	__
-	_
-	"
-
-	PS3='>: '
-    options=("Mettre à jour vers $buildVersion" "Archiver le serveur" "Pousser les backups sur un serveur distant" "Nettoyer le repertoire Build (corriger des problemes de droits lors de la MAJ" "Installer les pre-requis" "Afficher la configuration" "Purger les Backups" "Supprimer le serveur" "Menu Principal")
-    select opt in "${options[@]}"
-    do
-        case $opt in
-            "Mettre à jour vers $buildVersion")
-                updateServer
-                maintenance
-		break
-                ;;
-            "Archiver le serveur")
-                backupServer
-                maintenance
-		break
-                ;;
-            "Pousser les backups sur un serveur distant")
-                pushBackup
-                maintenance
-		break                ;;
-            "Nettoyer le repertoire Build (corriger des problemes de droits lors de la MAJ")
-                cleanServer
-                maintenance
-		break
-                ;;
-            "Installer les pre-requis")
-                installServer
-                exit 0
-		break
-                ;;
-            "Afficher la configuration")
-                cat config.yml
-                maintenance
-		break
-                ;;
-            "Purger les Backups")
-                purgeBackups
-                maintenance
-		break
-                ;;
-            "Supprimer le serveur")
-                resetServer
-                maintenance
-		break
-                ;;
-            "Menu Principal")
-        break
-                ;;
-            *) echo "invalid option $REPLY";;
-        esac
-    done
-
-}
+# Menuing
 
 mainMenu()
 {
@@ -140,26 +83,54 @@ mainMenu()
 	"
 	
 	PS3='>: '
-    options=("Demarrer le serveur" "Lancer le serveur en mode perpetuel" "Maintenance" "Quit")
+    options=("Start Server" "Start Server in continuous mode" "Update Server to $buildVersion" "Install Middlewares" "Backup Serveur" "Purge Backups" "Delete Server" "Quit")
     select opt in "${options[@]}"
     do
         case $opt in
-            "Demarrer le serveur")
+            "Start Server")
                 runServ
                 mainMenu
 		break
                 ;;
-            "Lancer le serveur en mode perpetuel")
+            "Start Server in continuous mode")
                 autonomous=1
-                runServ
+				runServ
+				StartMenu
+                mainMenu
+		break
+				;;
+            "Update Server to $buildVersion")
+                updateServer
+				if [ $autoclean = 1 ] 
+				then
+					cleanServer
+				fi
                 mainMenu
 		break
                 ;;
-            "Maintenance")
-                maintenance
+            "Install Middlewares")
+                installServer
+				exit 0
+                
+		break
+				;;
+            "Backup Serveur")
+                backupServer
+				pushBackup
+                mainMenu
+		break		
+				;;
+			"Purge Backups")
+                pushBackup
+				purgeBackups
                 mainMenu
 		break
-                ;;
+			;;
+            "Delete Server")
+                resetServer
+                mainMenu
+		break
+				;;
             "Quit")
                 break
                 ;;
@@ -168,11 +139,13 @@ mainMenu()
     done
 }
 
+# End of Menu
+
 pushBackup()
 {
     if [ $sftpServer = 'default' ]
     then
-        echo "Option non configuree"
+        echo "ftp Push option not configured"
         sleep 5
     else
 lftp -u $sftpUser,$sftpPassword sftp://$sftpUser@$sftpServer <<EOF
@@ -260,12 +233,13 @@ installServer()
 		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mAdding new repository\e[39m"
 		# commands to add the ppa ...
 		sudo add-apt-repository ppa:linuxuprising/java
-		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mJava Update to v16\e[39m"
+		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mJava Update\e[39m"
 		sudo apt update
-		# commands to install java 16 and put it as default jdk ...
-		sudo apt install oracle-java16-installer --install-recommends -y
+		# commands to install java and put it as default jdk ...
+		sudo apt install oracle-java17-installer --install-recommends -y
 	else
-		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mJava is already in V16\e[39m"
+		sudo apt install oracle-java17-installer --install-recommends -y
+		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mJava is up to date\e[39m"
 	fi
     
 	echo -e "\n\e[33m
@@ -324,21 +298,28 @@ purgeBackups()
 
 getUpdate()
 {
-	if [ $sftpServer = 'default' ]
-		then
-			echo "Option non configuree"
-			sleep 5
-		else
-		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mUpdating : Script\e[39m"
-lftp -u $sftpUser,$sftpPassword sftp://$sftpUser@$sftpServer <<EOF
-cd Home
-get -e _Spigot-Server.sh
-quit
-EOF
-    fi
-	echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mUpdated\e[39m"
-	echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mSetting execution rights\e[39m"
-	sleep 1
+	echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mCreating Update script\e[39m"
+	echo "echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mCloning repository\e[39m\"
+	sleep 2
+	git clone https://github.com/SwyxNet/Minecraft-Server-Script
+	sleep 2
+	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mRemoving old version\e[39m\"
+	rm _Spigot-Server.sh
+	sleep 2
+	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mCopying new version\e[39m\"
+	mv Minecraft-Server-Script/_Spigot-Server.sh _Spigot-Server.sh
+	sleep 2
+	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mMaking the script executable\e[39m\"
+	chmod u+x _Spigot-Server.sh
+	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mUpdate Complete\e[39m\"
+	echo -e \"\e[5m\e[33m>>\e[0m\e[39m\e[96mCleaning up\e[39m\"
+	rm -rf Minecraft-Server-Script/
+	rm updater.sh
+	exit 0
+" > updater.sh
+	sleep 2
+	chmod u+x updater.sh
+	./updater.sh
 }
 
 runServ()
@@ -403,8 +384,6 @@ else
 	elif [ $1 == "-g" -o $1 == "--get-update" ]
 	then
 		getUpdate
-		chmod u+x *.sh
-		echo -e "\e[5m\e[33m>>\e[0m\e[39m\e[96mDone\e[39m"
 		exit 0
 	else
 		echo "Unknown parameter, try \"./_Spigot-Server.sh --help\""
